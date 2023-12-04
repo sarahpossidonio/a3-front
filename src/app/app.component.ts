@@ -1,5 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Input } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -13,8 +12,10 @@ import {MatIconModule} from '@angular/material/icon';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {IMaskModule} from 'angular-imask';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
-import {Observable, map, startWith} from 'rxjs';
+import {Observable, catchError, map, of, startWith} from 'rxjs';
 import {MatButtonModule} from '@angular/material/button';
+import { MapDirectionsService, GoogleMapsModule, MapMarker } from '@angular/google-maps';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 
 @Component({
@@ -25,12 +26,13 @@ import {MatButtonModule} from '@angular/material/button';
     MatSelectModule, MatCardModule, FlexLayoutModule,
     MatSliderModule, MatToolbarModule, FormsModule, IMaskModule,
     ReactiveFormsModule, MatAutocompleteModule,
-  MatIconModule, MatButtonModule],
+  MatIconModule, MatButtonModule, GoogleMapsModule, HttpClientModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit{
 
+  calcOk = false;
   formulario:FormGroup = new FormGroup({
     saida: new FormControl(''),
     destino: new FormControl(''),
@@ -40,6 +42,16 @@ export class AppComponent implements OnInit{
     qtdPessoas: new FormControl (1),
     valAlimentacao: new FormControl ('')
   })
+  optionsMap: google.maps.MapOptions = {
+    center: {lat:-28.194889, lng: -55.639278},
+    zoom: 7
+  };
+
+  directionsResults$: Observable<google.maps.DirectionsResult | undefined> | undefined;
+  mapDirectionsService: MapDirectionsService
+  constructor(mapDirectionsService: MapDirectionsService, httpClient: HttpClient) {
+    this.mapDirectionsService = mapDirectionsService;
+  }
 
   myControl = new FormControl('');
   filteredOptions: Observable<string[]> | undefined;
@@ -69,11 +81,30 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit(): void {
+
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || '')),
     );
 
+
+  }
+
+  public tracarRota(retorno:JSON){
+    const request: google.maps.DirectionsRequest = {
+      destination: {lat: -30.981847, lng: -54.921744},
+      origin: {lat: -28.194889, lng: -55.639278},
+      waypoints:[
+        {location:{lat: -28.194889, lng: -55.639278}, stopover: false},
+        {location:{lat: -28.680582, lng: -55.9780875}, stopover: false},
+        {location:{lat: -29.1482364, lng: -56.0640154}, stopover: false},
+        {location:{lat: -29.5938305, lng: -55.4811322}, stopover: false},
+        {location:{lat: -29.7848016, lng: -55.775657}, stopover: false},
+        {location:{lat: -30.244349, lng: -54.921744}, stopover: false}
+      ],
+      travelMode: google.maps.TravelMode.DRIVING,
+    };
+    this.directionsResults$ = this.mapDirectionsService.route(request).pipe(map(response => response.result));
 
   }
   private _filter(value: string): string[] {
@@ -82,6 +113,11 @@ export class AppComponent implements OnInit{
     return this.options.filter(option => option.toLowerCase().includes(filterValue));
   }
   onSubmit(){
+    this.calcOk = true;
     console.log(this.formulario);
   }
+}
+export interface MapDirectionsResponse {
+  status: google.maps.DirectionsStatus;
+  result?: google.maps.DirectionsResult;
 }
