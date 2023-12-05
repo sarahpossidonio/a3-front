@@ -52,3 +52,10 @@ div.resultados p {
   text-align: center;
   color: #5b752c;
 }
+.respostas{
+  position: absolute;
+  right: 0;
+  padding-right: 10px;
+  font-weight:bold;
+  padding-left: 50px;
+}

@@ -16,6 +16,7 @@ import {Observable, catchError, map, of, startWith} from 'rxjs';
 import {MatButtonModule} from '@angular/material/button';
 import { MapDirectionsService, GoogleMapsModule, MapMarker } from '@angular/google-maps';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { GrafoService } from './grafo.service';
 
 
 @Component({
@@ -33,6 +34,14 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 export class AppComponent implements OnInit{
 
   calcOk = false;
+  duracao = "";
+  combustivel = "";
+  paradas = "";
+  totalKm = "";
+  alimentacao = "";
+  caminho = "";
+  way:any = []
+
   formulario:FormGroup = new FormGroup({
     saida: new FormControl(''),
     destino: new FormControl(''),
@@ -49,7 +58,13 @@ export class AppComponent implements OnInit{
 
   directionsResults$: Observable<google.maps.DirectionsResult | undefined> | undefined;
   mapDirectionsService: MapDirectionsService
-  constructor(mapDirectionsService: MapDirectionsService, httpClient: HttpClient) {
+  grafoServ: GrafoService
+  constructor(
+    mapDirectionsService: MapDirectionsService,
+    httpClient: HttpClient,
+    grafoServ: GrafoService) {
+
+    this.grafoServ = grafoServ;
     this.mapDirectionsService = mapDirectionsService;
   }
 
@@ -90,20 +105,34 @@ export class AppComponent implements OnInit{
 
   }
 
-  public tracarRota(retorno:JSON){
-    const request: google.maps.DirectionsRequest = {
-      destination: {lat: -30.981847, lng: -54.921744},
-      origin: {lat: -28.194889, lng: -55.639278},
-      waypoints:[
-        {location:{lat: -28.194889, lng: -55.639278}, stopover: false},
-        {location:{lat: -28.680582, lng: -55.9780875}, stopover: false},
-        {location:{lat: -29.1482364, lng: -56.0640154}, stopover: false},
-        {location:{lat: -29.5938305, lng: -55.4811322}, stopover: false},
-        {location:{lat: -29.7848016, lng: -55.775657}, stopover: false},
-        {location:{lat: -30.244349, lng: -54.921744}, stopover: false}
-      ],
+  public tracarRota(caminhos:Array<Caminhos>){
+    let origem: any;
+    let destino: any;
+    this.way=[]
+    this.caminho="";
+
+    caminhos.forEach((element:Caminhos) => {
+      if(caminhos.lastIndexOf(element)==caminhos.length-1){
+        destino = new google.maps.LatLng(element.latitude,element.longitude);
+        this.caminho += element.nome;
+      }else if(caminhos.indexOf(element)==0){
+        origem = new google.maps.LatLng(element.latitude,element.longitude);
+        this.caminho += element.nome+" -> ";
+      } else{
+        let obj = {location:{lat: element.latitude, lng: element.longitude}, stopover: true};
+        this.way.push(obj)
+        this.caminho += element.nome+" -> ";
+      }
+    });
+    let request: google.maps.DirectionsRequest = {
+      destination: destino,
+      origin: origem,
+      waypoints:this.way,
       travelMode: google.maps.TravelMode.DRIVING,
     };
+    destino=null;
+    origem=null;
+    this.way=null
     this.directionsResults$ = this.mapDirectionsService.route(request).pipe(map(response => response.result));
 
   }
@@ -115,9 +144,41 @@ export class AppComponent implements OnInit{
   onSubmit(){
     this.calcOk = true;
     console.log(this.formulario);
+    this.efetuaCalculo();
+    // this.grafoServ.ola().subscribe(
+    //   success =>{
+    //     console.log(success)
+    //   }
+    // )
+  }
+
+
+  efetuaCalculo(){
+    this.grafoServ.calcular(this.formulario).subscribe(
+      success=>{
+        this.duracao = success.tempo
+        this.combustivel = "R$ "+success.combustivel.toLocaleString('pt-br', {style: 'decimal', minimumIntegerDigits: 1});
+        this.paradas = success.paradas.toLocaleString('pt-br', {style: 'decimal', minimumIntegerDigits: 1});
+        this.totalKm = success.distancia.toLocaleString('pt-br', {style: 'decimal', minimumIntegerDigits: 1})+" Km";
+        this.alimentacao = "R$ "+success.alimentacao.toLocaleString('pt-br', {style: 'decimal', minimumIntegerDigits: 1});
+
+        console.log(success.listaCaminho)
+
+        this.tracarRota(success.listaCaminho)
+
+
+        console.log(success)
+      }
+    );
   }
 }
 export interface MapDirectionsResponse {
   status: google.maps.DirectionsStatus;
   result?: google.maps.DirectionsResult;
+}
+
+export interface Caminhos{
+  nome:string;
+  latitude: number;
+  longitude: number;
 }

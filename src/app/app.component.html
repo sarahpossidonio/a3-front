@@ -112,7 +112,7 @@
       <div fxLayout="column" fxFlex="50">
         <div style="width: 100%; height: 350px;">
 
-          <!-- @if (calcOk) { -->
+          @if (calcOk) {
             <google-map
               height="350px"
               width="750px"
@@ -122,7 +122,7 @@
                 }
 
             </google-map>
-          <!-- } -->
+          }
         </div>
       </div>
       <div fxLayout="row" fxFlex="50">
@@ -132,17 +132,26 @@
               <mat-icon fontIcon="map"></mat-icon>
               Rotas
             </p>
+            <p class="respostas" style="padding-left: 100px;">
+              {{caminho}}
+            </p>
           </div>
           <div class="resultados" style="background-color: #80a73e;">
             <p>
               <mat-icon fontIcon="watch_later"></mat-icon>
               Duração da Viagem
             </p>
+            <p class="respostas">
+              {{duracao}}
+            </p>
           </div>
           <div class="resultados" style="background-color: #80a73e;">
             <p>
               <mat-icon fontIcon="route"></mat-icon>
               Total de Km
+            </p>
+            <p class="respostas">
+              {{totalKm}}
             </p>
           </div>
         </div>
@@ -153,17 +162,26 @@
               <mat-icon fontIcon="local_gas_station"></mat-icon>
               Total do Combustível
             </p>
+            <p class="respostas">
+              {{combustivel}}
+            </p>
           </div>
           <div class="resultados" style="background-color: #80a73e;">
             <p>
               <mat-icon fontIcon="hotel"></mat-icon>
               Total de Paradas
             </p>
+            <p class="respostas">
+              {{paradas}}
+            </p>
           </div>
           <div class="resultados" style="background-color: #80a73e;">
             <p>
               <mat-icon fontIcon="restaurant"></mat-icon>
               Total de Alimentação
+            </p>
+            <p class="respostas">
+              {{alimentacao}}
             </p>
           </div>
         </div>
