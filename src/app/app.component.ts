@@ -74,7 +74,7 @@ export class AppComponent implements OnInit{
   "Itaqui","Maçambará","Manoel Viana","Quaraí","São Borja",
   "São Francisco de Assis","Uruguaiana","Rosário do Sul",
   "Santa Margarida do Sul","Sant'Ana do Livramento","São Gabriel",
-  "Aceguá","Bagé","Dom Pedrito","Hulha Negra","Lavras do Sul"];
+  "Aceguá","Bagé","Dom Pedrito","Hulha Negra","Lavras do Sul"];
   title = 'a3-front';
 
   valorCombustivel: string = "";
